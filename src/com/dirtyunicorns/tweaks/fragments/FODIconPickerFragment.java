@@ -31,15 +31,38 @@ import com.android.settings.SettingsPreferenceFragment;
 
 public class FODIconPickerFragment extends SettingsPreferenceFragment {
 
+    private static final String KEY_SCREEN_OFF_FOD = "screen_off_fod";
+    private SwitchPreference mScreenOffFOD;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.settings_fod_picker);
 
+        mResolver = getActivity().getContentResolver();
+
         getActivity().getActionBar().setTitle(R.string.fod_icon_picker_title);
 
         mFooterPreferenceMixin.createFooterPreference().setTitle(R.string.fod_icon_picker_footer);
+
+        boolean mScreenOffFODValue = Settings.System.getInt(mResolver,
+                Settings.System.SCREEN_OFF_FOD, 0) != 0;
+
+        mScreenOffFOD = (SwitchPreference) findPreference(KEY_SCREEN_OFF_FOD);
+        mScreenOffFOD.setChecked(mScreenOffFODValue);
+        mScreenOffFOD.setOnPreferenceChangeListener(this);
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        if (preference == mScreenOffFOD) {
+            int mScreenOffFODValue = (Boolean) newValue ? 1 : 0;
+            Settings.System.putInt(mResolver, Settings.System.SCREEN_OFF_FOD, mScreenOffFODValue);
+            Settings.Secure.putInt(mResolver, Settings.Secure.DOZE_ALWAYS_ON, mScreenOffFODValue);
+            return true;
+        }
+        return false;
     }
 
     @Override
